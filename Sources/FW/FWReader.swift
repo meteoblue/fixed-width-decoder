@@ -14,7 +14,7 @@ public class FWReader {
     public fileprivate (set) var headerRow: [String]?
     public fileprivate (set) var currentRow: [String]?
 
-    init(string: String, rowWidth: Int, fieldSizes: [Int], hasHeaderRow: Bool = false, allowPartialRow: Bool = false, trimFields: Bool = false) throws {
+    public init(string: String, rowWidth: Int, fieldSizes: [Int], hasHeaderRow: Bool = false, allowPartialRow: Bool = false, trimFields: Bool = false) throws {
         self.rowWidth = rowWidth
         self.hasHeaderRow = hasHeaderRow
         self.allowPartialRow = allowPartialRow

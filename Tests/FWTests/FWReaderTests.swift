@@ -84,4 +84,17 @@ final class FWReaderTests: XCTestCase {
         XCTAssertEqual(reader.next(), nil)
         XCTAssertEqual(reader.currentRow, nil)
     }
+
+    func testStream() throws {
+        let stream = InputStream(data: "abc\n123\n---".data(using: .utf8)!)
+
+        let reader = try! FWReader(stream: stream, codecType: Unicode.UTF8.self, rowWidth: 4, fieldSizes: [4], hasHeaderRow: true, allowPartialRow: true)
+
+        var count = 0
+        while reader.next() != nil {
+            count += 1
+        }
+
+        XCTAssertEqual(count, 2)
+    }
 }

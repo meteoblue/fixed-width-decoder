@@ -6,7 +6,7 @@ public class FWReader {
     let allowPartialRow: Bool
     let trimFields: Bool
 
-    var iterator: String.UnicodeScalarView.Iterator
+    var iterator: AnyIterator<UnicodeScalar>
 
     private let startIndices: [Int]
     private let endIndices: [Int]
@@ -23,10 +23,76 @@ public class FWReader {
         startIndices = fieldSizes.reduce(into: [0], { acc, e in acc.append(acc.last! + e) }).dropLast()
         endIndices = fieldSizes.reduce(into: [], { acc, e in acc.append((acc.last ?? 0) + e) })
 
-        self.iterator = string.unicodeScalars.makeIterator()
+        self.iterator = AnyIterator(string.unicodeScalars.makeIterator())
 
         if hasHeaderRow {
-            headerRow = try next()
+            headerRow = next()
+            currentRow = nil
+        } else {
+            headerRow = nil
+            currentRow = nil
+        }
+    }
+
+    public init<T: UnicodeCodec>(stream: InputStream, codecType: T.Type, rowWidth: Int, fieldSizes: [Int], hasHeaderRow: Bool = false, allowPartialRow: Bool = false, trimFields: Bool = false) throws where T.CodeUnit == UInt8 {
+        self.rowWidth = rowWidth
+        self.hasHeaderRow = hasHeaderRow
+        self.allowPartialRow = allowPartialRow
+        self.trimFields = trimFields
+
+        startIndices = fieldSizes.reduce(into: [0], { acc, e in acc.append(acc.last! + e) }).dropLast()
+        endIndices = fieldSizes.reduce(into: [], { acc, e in acc.append((acc.last ?? 0) + e) })
+
+        let reader = try BinaryReader(stream: stream, endian: .unknown)
+        let input = reader.makeUInt8Iterator()
+        self.iterator = AnyIterator(UnicodeIterator(input: input, inputEncodingType: codecType))
+
+        if hasHeaderRow {
+            headerRow = next()
+            currentRow = nil
+        } else {
+            headerRow = nil
+            currentRow = nil
+        }
+    }
+
+    public init<T: UnicodeCodec>(stream: InputStream, codecType: T.Type, endian: Endian = .big, rowWidth: Int, fieldSizes: [Int], hasHeaderRow: Bool = false, allowPartialRow: Bool = false, trimFields: Bool = false) throws where T.CodeUnit == UInt16 {
+        self.rowWidth = rowWidth
+        self.hasHeaderRow = hasHeaderRow
+        self.allowPartialRow = allowPartialRow
+        self.trimFields = trimFields
+
+        startIndices = fieldSizes.reduce(into: [0], { acc, e in acc.append(acc.last! + e) }).dropLast()
+        endIndices = fieldSizes.reduce(into: [], { acc, e in acc.append((acc.last ?? 0) + e) })
+
+        let reader = try BinaryReader(stream: stream, endian: endian)
+        let input = reader.makeUInt16Iterator()
+        self.iterator = AnyIterator(UnicodeIterator(input: input, inputEncodingType: codecType))
+
+        if hasHeaderRow {
+            headerRow = next()
+            currentRow = nil
+        } else {
+            headerRow = nil
+            currentRow = nil
+        }
+    }
+
+    public init<T: UnicodeCodec>(stream: InputStream, codecType: T.Type, endian: Endian = .big, rowWidth: Int, fieldSizes: [Int], hasHeaderRow: Bool = false, allowPartialRow: Bool = false, trimFields: Bool = false) throws where T.CodeUnit == UInt32 {
+        self.rowWidth = rowWidth
+        self.hasHeaderRow = hasHeaderRow
+        self.allowPartialRow = allowPartialRow
+        self.trimFields = trimFields
+
+        startIndices = fieldSizes.reduce(into: [0], { acc, e in acc.append(acc.last! + e) }).dropLast()
+        endIndices = fieldSizes.reduce(into: [], { acc, e in acc.append((acc.last ?? 0) + e) })
+
+        let reader = try BinaryReader(stream: stream, endian: endian)
+        let input = reader.makeUInt32Iterator()
+        self.iterator = AnyIterator(UnicodeIterator(input: input, inputEncodingType: codecType))
+
+        if hasHeaderRow {
+            headerRow = next()
             currentRow = nil
         } else {
             headerRow = nil
